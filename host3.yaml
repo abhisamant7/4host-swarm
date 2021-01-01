@@ -30,7 +30,7 @@ services:
         - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
         - ./crypto-config/ordererOrganizations/dfarmorderer.com/orderers/orderer3.dfarmorderer.com/msp:/var/hyperledger/orderer/msp
         - ./crypto-config/ordererOrganizations/dfarmorderer.com/orderers/orderer3.dfarmorderer.com/tls/:/var/hyperledger/orderer/tls
-        - orderer3.dfarmorderer.com:/var/hyperledger/production/orderer
+        - orderer3.example.com:/var/hyperledger/production/orderer
     ports:
     - 9050:9050
 
