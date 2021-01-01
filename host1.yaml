@@ -1,0 +1,91 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer.dfarmorderer.com:
+  peer0.dfarmadmin.com:
+
+networks:
+  byfn:
+    external:
+      name: first-network
+
+services:
+
+  orderer.dfarmorderer.com:
+    extends:
+      file:   base/docker-compose-base.yaml
+      service: orderer.dfarmorderer.com
+    container_name: orderer.dfarmorderer.com
+    networks:
+      - byfn
+
+  peer0.dfarmadmin.com:
+    container_name: peer0.dfarmadmin.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.dfarmadmin.com
+    networks:
+      - byfn
+
+  cli:
+    container_name: cli
+    image: hyperledger/fabric-tools:$IMAGE_TAG
+    tty: true
+    stdin_open: true
+    environment:
+      - SYS_CHANNEL=$SYS_CHANNEL
+      - GOPATH=/opt/gopath
+      - CORE_VM_ENDPOINT=unix:///host/var/run/docker.sock
+      #- FABRIC_LOGGING_SPEC=DEBUG
+      - FABRIC_LOGGING_SPEC=INFO
+      - CORE_PEER_ID=cli
+      - CORE_PEER_ADDRESS=peer0.dfarmadmin.com:7051
+      - CORE_PEER_LOCALMSPID=DfarmadminMSP
+      - CORE_PEER_TLS_ENABLED=true
+      - CORE_PEER_TLS_CERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/dfarmadmin.com/peers/peer0.dfarmadmin.com/tls/server.crt
+      - CORE_PEER_TLS_KEY_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/dfarmadmin.com/peers/peer0.dfarmadmin.com/tls/server.key
+      - CORE_PEER_TLS_ROOTCERT_FILE=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/dfarmadmin.com/peers/peer0.dfarmadmin.com/tls/ca.crt
+      - CORE_PEER_MSPCONFIGPATH=/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/peerOrganizations/dfarmadmin.com/users/Admin@dfarmadmin.com/msp
+    working_dir: /opt/gopath/src/github.com/hyperledger/fabric/peer
+    command: /bin/bash
+    volumes:
+        - /var/run/:/host/var/run/
+        - ./../chaincode/:/opt/gopath/src/github.com/chaincode
+        - ./crypto-config:/opt/gopath/src/github.com/hyperledger/fabric/peer/crypto/
+        - ./scripts:/opt/gopath/src/github.com/hyperledger/fabric/peer/scripts/
+        - ./channel-artifacts:/opt/gopath/src/github.com/hyperledger/fabric/peer/channel-artifacts
+    depends_on:
+      - orderer.dfarmorderer.com
+      - peer0.dfarmadmin.com
+    networks:
+      - byfn
+
+  ca.dfarmadmin.com:
+    image: hyperledger/fabric-ca
+    container_name: ca.dfarmadmin.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.dfarmadmin.com
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.dfarmadmin.com-cert.pem
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/f5c82eb66bab550b82d9475244d00817859e64638fb8ba9baae780efca4f30ef_sk
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw'
+    volumes:
+      - ../crypto-config/peerOrganizations/dfarmadmin.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    networks:
+      - byfn
+
+  couchdb0:
+    container_name: couchdb0
+    image: hyperledger/fabric-couchdb
+    ports:
+      - "5984:5984"
+    networks:
+      - byfn
+

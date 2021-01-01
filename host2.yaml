@@ -1,0 +1,67 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer2.example.com:
+  peer0.yngadmin.com:
+
+networks:
+  byfn:
+    external:
+      name: first-network
+
+services:
+
+  orderer2.dfarmorderer.com:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    environment:
+      - ORDERER_GENERAL_LISTENPORT=8050
+    container_name: orderer2.dfarmorderer.com
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/dfarmorderer.com/orderers/orderer2.dfarmorderer.com/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/dfarmorderer.com/orderers/orderer2.dfarmorderer.com/tls/:/var/hyperledger/orderer/tls
+        - orderer2.dfarmorderer.com:/var/hyperledger/production/orderer
+    ports:
+    - 8050:8050
+
+  peer0.yngadmin.com:
+    container_name: peer0.yngadmin.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.yngadmin.com
+    networks:
+      - byfn
+
+  ca.yngadmin.com:
+    image: hyperledger/fabric-ca
+    container_name: ca.yngadmin.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.yngadmin.com
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.yngadmin.com-cert.pem
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/4f1e64a2a1fb728c4aaaddbba59564a2411601dff8985194624f6c8620329dc6_sk
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw'
+    volumes:
+      - ../crypto-config/peerOrganizations/yngadmin.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    networks:
+      - byfn
+
+  couchdb1:
+    container_name: couchdb1
+    image: hyperledger/fabric-couchdb
+    ports:
+      - "5984:5984"
+    networks:
+      - byfn
+

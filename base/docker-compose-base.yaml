@@ -1,0 +1,89 @@
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+services:
+
+  orderer.dfarmorderer.com:
+    container_name: orderer.dfarmorderer.com
+    extends:
+      file: peer-base.yaml
+      service: orderer-base
+    volumes:
+        - ../channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ../crypto-config/ordererOrganizations/dfarmorderer.com/orderers/orderer.dfarmorderer.com/msp:/var/hyperledger/orderer/msp
+        - ../crypto-config/ordererOrganizations/dfarmorderer.com/orderers/orderer.dfarmorderer.com/tls/:/var/hyperledger/orderer/tls
+        - orderer.dfarmorderer.com:/var/hyperledger/production/orderer
+    ports:
+      - 7050:7050
+
+  peer0.dfarmadmin.com:
+    container_name: peer0.dfarmadmin.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.dfarmadmin.com
+      - CORE_PEER_ADDRESS=peer0.dfarmadmin.com:7051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:7051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.dfarmadmin.com:7052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:7052
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.yngadmin.com:8051
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.dfarmadmin.com:7051
+      - CORE_PEER_LOCALMSPID=DfarmadminMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/dfarmadmin.com/peers/peer0.dfarmadmin.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/dfarmadmin.com/peers/peer0.dfarmadmin.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.dfarmadmin.com:/var/hyperledger/production
+    ports:
+      - 7051:7051
+
+  peer0.yngadmin.com:
+    container_name: peer0.yngadmin.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.yngadmin.com
+      - CORE_PEER_ADDRESS=peer0.yngadmin.com:8051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:8051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.yngadmin.com:8052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:8052
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.yngadmin.com:8051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.dfarmadmin.com:7051
+      - CORE_PEER_LOCALMSPID=YngadminMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/yngadmin.com/peers/peer0.yngadmin.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/yngadmin.com/peers/peer0.yngadmin.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.yngadmin.com:/var/hyperledger/production
+    ports:
+      - 8051:8051
+
+  peer0.dfarmdemo.com:
+    container_name: peer0.dfarmdemo.com
+    extends:
+      file: peer-base.yaml
+      service: peer-base
+    environment:
+      - CORE_PEER_ID=peer0.dfarmdemo.com
+      - CORE_PEER_ADDRESS=peer0.dfarmdemo.com:9051
+      - CORE_PEER_LISTENADDRESS=0.0.0.0:9051
+      - CORE_PEER_CHAINCODEADDRESS=peer0.dfarmdemo.com:9052
+      - CORE_PEER_CHAINCODELISTENADDRESS=0.0.0.0:9052
+      - CORE_PEER_GOSSIP_EXTERNALENDPOINT=peer0.dfarmdemo.com:9051
+      - CORE_PEER_GOSSIP_BOOTSTRAP=peer0.dfarmadmin.com:7051
+      - CORE_PEER_LOCALMSPID=DfarmdemoMSP
+    volumes:
+        - /var/run/:/host/var/run/
+        - ../crypto-config/peerOrganizations/dfarmdemo.com/peers/peer0.dfarmdemo.com/msp:/etc/hyperledger/fabric/msp
+        - ../crypto-config/peerOrganizations/dfarmdemo.com/peers/peer0.dfarmdemo.com/tls:/etc/hyperledger/fabric/tls
+        - peer0.dfarmdemo.com:/var/hyperledger/production
+    ports:
+      - 9051:9051
+
+

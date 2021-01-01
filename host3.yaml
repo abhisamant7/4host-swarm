@@ -1,0 +1,68 @@
+
+# Copyright IBM Corp. All Rights Reserved.
+#
+# SPDX-License-Identifier: Apache-2.0
+#
+
+version: '2'
+
+volumes:
+  orderer3.dfarmorderer.com:
+  peer0.dfarmdemo.com:
+
+networks:
+  byfn:
+    external:
+      name: first-network
+
+services:
+
+  orderer3.dfarmorderer.com:
+    extends:
+      file: base/peer-base.yaml
+      service: orderer-base
+    environment:
+      - ORDERER_GENERAL_LISTENPORT=9050
+    container_name: orderer3.dfarmorderer.com
+    networks:
+    - byfn
+    volumes:
+        - ./channel-artifacts/genesis.block:/var/hyperledger/orderer/orderer.genesis.block
+        - ./crypto-config/ordererOrganizations/dfarmorderer.com/orderers/orderer3.dfarmorderer.com/msp:/var/hyperledger/orderer/msp
+        - ./crypto-config/ordererOrganizations/dfarmorderer.com/orderers/orderer3.dfarmorderer.com/tls/:/var/hyperledger/orderer/tls
+        - orderer3.dfarmorderer.com:/var/hyperledger/production/orderer
+    ports:
+    - 9050:9050
+
+  peer0.dfarmdemo.com:
+    container_name: peer0.dfarmdemo.com
+    extends:
+      file:  base/docker-compose-base.yaml
+      service: peer0.dfarmdemo.com
+    networks:
+      - byfn
+
+  ca.dfarmdemo.com:
+    image: hyperledger/fabric-ca
+    container_name: ca.dfarmdemo.com
+    environment:
+      - FABRIC_CA_HOME=/etc/hyperledger/fabric-ca-server
+      - FABRIC_CA_SERVER_CA_NAME=ca.dfarmdemo.com
+      - FABRIC_CA_SERVER_CA_CERTFILE=/etc/hyperledger/fabric-ca-server-config/ca.dfarmdemo.com-cert.pem
+      - FABRIC_CA_SERVER_CA_KEYFILE=/etc/hyperledger/fabric-ca-server-config/85c04e5abbcbb9e63f5d20e869b707cff2d09a9c6335eb776c7d3c464fb3d7a7_sk
+    ports:
+      - "7054:7054"
+    command: sh -c 'fabric-ca-server start -b admin:adminpw'
+    volumes:
+      - ../crypto-config/peerOrganizations/dfarmdemo.com/ca/:/etc/hyperledger/fabric-ca-server-config
+    networks:
+      - byfn
+
+  couchdb2:
+    container_name: couchdb2
+    image: hyperledger/fabric-couchdb
+    ports:
+      - "5984:5984"
+    networks:
+      - byfn
+
