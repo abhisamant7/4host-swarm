@@ -347,7 +347,7 @@ Profiles:
                 <<: *ApplicationCapabilities
     demodfarmchannel:
 
-        Consortium: dfarmConsortium
+        Consortium: DfarmConsortium
         <<: *ChannelDefaults
         Application:
             <<: *ApplicationDefaults
