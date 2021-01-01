@@ -54,7 +54,7 @@ services:
       - "7054:7054"
     command: sh -c 'fabric-ca-server start -b admin:adminpw'
     volumes:
-      - ../crypto-config/peerOrganizations/dfarmdemo.com/ca/:/etc/hyperledger/fabric-ca-server-config
+      - ./crypto-config/peerOrganizations/dfarmdemo.com/ca/:/etc/hyperledger/fabric-ca-server-config
     networks:
       - byfn
 
